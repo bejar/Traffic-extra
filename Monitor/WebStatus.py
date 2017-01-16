@@ -24,8 +24,6 @@ import time
 
 
 from flask import Flask, request, render_template
-#from Parameters.Private import WS_port
-
 
 # Configuration stuff
 hostname = socket.gethostname()
