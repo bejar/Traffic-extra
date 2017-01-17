@@ -203,7 +203,7 @@ def graphic():
         plot_url = base64.b64encode(img.getvalue())
         plt.close()
 
-        return render_template('graphview.html', plot_url=plot_url)
+        return render_template('Graphview.html', plot_url=plot_url)
     else:
         return ""
 
