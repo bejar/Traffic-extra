@@ -455,7 +455,7 @@ def generate_data_day(day, z_factor, method='two', log=False):
                     llabels.append(l)
 
     X_train = np.array(ldata)
-    X_train.transpose((0,3,1,2)) # Theano ordering
+    X_train = X_train.transpose((0,3,1,2)) # Theano ordering
     llabels = [i - 1 for i in llabels]  # change labels from 1-5 to 0-4
     np.save(dataset_path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), X_train)
     np.save(dataset_path + 'labels-D%s-Z%0.2f.npy' % (day, z_factor), np.array(llabels))
@@ -596,7 +596,7 @@ if __name__ == '__main__':
 
     days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
 
-    z_factor = 0.25
+    z_factor = 0.35
 
     for day in days:
         generate_data_day(day, z_factor)
@@ -610,3 +610,6 @@ if __name__ == '__main__':
     #
     # info_dataset(days, z_factor, reb=False)
 
+    # data, labels = load_generated_dataset(dataset_path, days, z_factor)
+    #
+    # print(data.shape)
