@@ -454,6 +454,9 @@ def generate_data_day(day, z_factor, method='two', log=False):
                     ldata.append(data)
                     llabels.append(l)
 
+    X_train = np.array(ldata)
+    X_train.transpose((0,3,1,2)) # Theano ordering
+    llabels = [i - 1 for i in llabels]  # change labels from 1-5 to 0-4
     np.save(dataset_path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), np.array(ldata))
     np.save(dataset_path + 'labels-D%s-Z%0.2f.npy' % (day, z_factor), np.array(llabels))
 
@@ -595,9 +598,9 @@ def info_dataset(ldaysTr, z_factor, reb=False):
 if __name__ == '__main__':
     #generate_classification_dataset_two('20161101')
 
-    days = list_days_generator(2016, 12, 3, 31)
+    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
 
-    z_factor = 0.35
+    z_factor = 0.25
 
     for day in days:
         generate_data_day(day, z_factor)
