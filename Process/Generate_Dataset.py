@@ -457,8 +457,7 @@ def generate_data_day(day, z_factor, method='two', log=False):
     X_train = np.array(ldata)
     X_train.transpose((0,3,1,2)) # Theano ordering
     llabels = [i - 1 for i in llabels]  # change labels from 1-5 to 0-4
-    print(Counter(llabels))
-    np.save(dataset_path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), np.array(ldata))
+    np.save(dataset_path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), X_train)
     np.save(dataset_path + 'labels-D%s-Z%0.2f.npy' % (day, z_factor), np.array(llabels))
 
 
@@ -599,8 +598,8 @@ if __name__ == '__main__':
 
     z_factor = 0.25
 
-    # for day in days:
-    #     generate_data_day(day, z_factor)
+    for day in days:
+        generate_data_day(day, z_factor)
     #
     # for day in days:
     #     generate_splitted_data_day(day, z_factor)
@@ -609,5 +608,5 @@ if __name__ == '__main__':
     #     print(day)
     #     generate_rebalanced_data_day(day, z_factor, {0:0.4, 1:0.5, 2:1, 3:1, 4:1})
     #
-    info_dataset(days, z_factor, reb=False)
+    # info_dataset(days, z_factor, reb=False)
 
