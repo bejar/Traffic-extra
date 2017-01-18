@@ -19,7 +19,7 @@ CleanImages
 
 import filecmp
 import os
-from Util.Constants import cameras_path_MAD, data_path_MAD
+from Utilities.Constants import cameras_path_MAD, data_path_MAD
 import glob
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ import csv
 __author__ = 'bejar'
 
 if __name__ == '__main__':
-    day = '20170115'
+    day = '20170117'
 
     lcameras = []
     with open(data_path_MAD + 'MAD_cameras.txt', 'r') as csvfile:

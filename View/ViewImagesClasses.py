@@ -21,7 +21,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 
 from Process.Generate_Dataset import generate_classification_dataset
-from Util.Constants import cameras_path
+from Utilities.Constants import cameras_path
 
 __author__ = 'bejar'
 

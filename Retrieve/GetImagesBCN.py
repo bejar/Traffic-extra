@@ -22,9 +22,10 @@ import time
 
 import requests
 
-from Util.Cameras import Cameras
-from Util.Constants import cameras_path, data_path, status_path
-from Util.Webservice import inform_webservice
+from Utilities.Cameras import Cameras
+from Utilities.Constants import cameras_path, data_path, status_path
+from Utilities.Webservice import inform_webservice
+
 
 __author__ = 'bejar'
 

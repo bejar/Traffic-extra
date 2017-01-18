@@ -28,7 +28,7 @@ from PIL import ImageEnhance
 from PIL import ImageOps
 import csv
 
-from Util.Constants import cameras_path_MAD, data_path_MAD
+from Utilities.Constants import cameras_path_MAD, data_path_MAD
 from tesserocr import PyTessBaseAPI
 import tesserocr
 __author__ = 'bejar'

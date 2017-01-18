@@ -19,8 +19,8 @@ CleanImages
 
 import filecmp
 import os
-from Util.Cameras import Cameras
-from Util.Constants import cameras_path
+from Utilities.Cameras import Cameras
+from Utilities.Constants import cameras_path
 import glob
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ import matplotlib.pyplot as plt
 __author__ = 'bejar'
 
 if __name__ == '__main__':
-    day = '20170115'
+    day = '20170117'
     for cam in Cameras:
 
         ldir = glob.glob(cameras_path + day + '/*%s.gif'%cam)

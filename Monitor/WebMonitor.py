@@ -33,7 +33,7 @@ import  matplotlib.pyplot as plt
 import base64
 import seaborn as sns
 
-from Util.DBConfig import mongoconnection
+from Utilities.DBConfig import mongoconnection
 import pprint
 
 

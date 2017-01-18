@@ -19,7 +19,7 @@ CamTram
 
 __author__ = 'bejar'
 
-from Util.Constants import data_path
+from Utilities.Constants import data_path
 
 class CamTram:
 

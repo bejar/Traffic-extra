@@ -23,7 +23,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import numpy as np
 from PIL import Image
-from Util.Constants import cameras_path
+from Utilities.Constants import cameras_path
 from scipy.ndimage import zoom
 
 __author__ = 'bejar'

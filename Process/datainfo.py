@@ -23,7 +23,7 @@ datainfo
 
 import numpy as np
 
-from Util.Cameras import CamCoord, Cameras
+from Utilities.Cameras import CamCoord, Cameras
 
 __author__ = 'bejar'
 

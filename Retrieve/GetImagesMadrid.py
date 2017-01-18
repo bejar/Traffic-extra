@@ -27,8 +27,8 @@ import urllib3
 from bs4 import BeautifulSoup
 from joblib import Parallel, delayed
 
-from Util.Constants import data_path_MAD, cameras_path_MAD, status_path_MAD
-from Util.Webservice import inform_webservice
+from Utilities.Constants import data_path_MAD, cameras_path_MAD, status_path_MAD
+from Utilities.Webservice import inform_webservice
 
 __author__ = 'bejar'
 
