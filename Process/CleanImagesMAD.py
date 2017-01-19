@@ -60,7 +60,6 @@ if __name__ == '__main__':
                 # sp1.imshow(image2)
                 # plt.show()
                 # plt.close()
-
         for f in ldel:
             print('Removing=', f)
             os.remove(f)
