@@ -6,7 +6,7 @@ Cameras
 
 :Description: Cameras
 
-    
+ List of camera names from Barcelona
 
 :Authors: bejar
     
@@ -18,8 +18,38 @@ Cameras
 """
 
 __author__ = 'bejar'
+# All the public traffic cameras of Barcelona city
+Cameras = [
+    'AragoPgGracia',
+    'BalmesGranVia',
+    'BalmesMitre',
+    'DiagonalCiutatdeGranada',
+    'DiagonalMCristina',
+    'GranViaBacRoda',
+    'GranViaMarina',
+    'MarinaPujades',
+    'MeridianaFelipII',
+    'MeridianaRioJaneiro',
+    'PlAntonioLopez',
+    'PlCatalunya',
+    'PlCerda',
+    'PlEspanya',
+    'PlMolina',
+    'PlPaissosCatalans',
+#    'PlPauVila',
+    'PlUrquinaona',
+    'RondaLitoralBadajoz',
+    'RondadeDaltCrtaEsplugues',
+    'RondadeDaltMeridiana',
+    'RondadeDaltSantGervasi',
+    'RondadeDaltVelodrom',
+    'RondaLitoralBonPastor',
+    'RondaLitoralMollFusta',
+    'RondaLitoralZonaFranca',
+    'TunelRovira'
+]
 
-
+# list of the "good" cameras (the commented ones are out of service or pointing mostly to trees
 Cameras_ok = [
     'AragoPgGracia',
     'BalmesGranVia',
@@ -51,37 +81,8 @@ Cameras_ok = [
 ]
 
 
-Cameras = [
-    'AragoPgGracia',
-    'BalmesGranVia',
-    'BalmesMitre',
-    'DiagonalCiutatdeGranada',
-    'DiagonalMCristina',
-    'GranViaBacRoda',
-    'GranViaMarina',
-    'MarinaPujades',
-    'MeridianaFelipII',
-    'MeridianaRioJaneiro',
-    'PlAntonioLopez',
-    'PlCatalunya',
-    'PlCerda',
-    'PlEspanya',
-    'PlMolina',
-    'PlPaissosCatalans',
-#    'PlPauVila',
-    'PlUrquinaona',
-    'RondaLitoralBadajoz',
-    'RondadeDaltCrtaEsplugues',
-    'RondadeDaltMeridiana',
-    'RondadeDaltSantGervasi',
-    'RondadeDaltVelodrom',
-    'RondaLitoralBonPastor',
-    'RondaLitoralMollFusta',
-    'RondaLitoralZonaFranca',
-    'TunelRovira'
-]
 
-
+# Longitude, latitude of the cameras
 CamCoord = {
     'AragoPgGracia': (2.16487462,41.39225298),
     'BalmesGranVia': (2.16560024,41.3871296),
@@ -109,5 +110,5 @@ CamCoord = {
     'RondaLitoralBonPastor': (2.20924092,41.43597442),
     'RondaLitoralMollFusta': (2.17973115,41.37724461),
     'RondaLitoralZonaFranca': (2.1468751,41.34935557),
-    'TunelRovira': ( 2.1581906500000514, 41.42382369)
+    'TunelRovira': (2.1581906500000514, 41.42382369)
 }

@@ -19,7 +19,6 @@ CamTram
 
 __author__ = 'bejar'
 
-from Utilities.Constants import data_path
 
 class CamTram:
 
@@ -30,7 +29,7 @@ class CamTram:
 
         """
         self.ct = {}
-        f = open(data_path + 'CameraTram.txt', 'r')
+        f = open('./CameraTram.txt', 'r')
 
         for line in f:
             cam, tram1, tram2, name1, name2 = line.split(',')

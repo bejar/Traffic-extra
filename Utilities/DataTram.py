@@ -6,7 +6,7 @@ DataTram
 
 :Description: DataTram
 
-    Recupera la informacion del estado del transito del fichero de tramos
+    Reads the information of the Traffic status from the "dadestram" files
 
 :Authors: bejar
     
