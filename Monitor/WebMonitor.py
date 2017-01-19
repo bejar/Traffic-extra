@@ -243,7 +243,7 @@ def model():
     end = '</body></html>'
 
     return head + \
-           '<br><h2>Config:</h2><br><br>' + pprint.pformat(vals['config'], indent=4, width=40).replace('\n', '<br>') + \
+           '<br><h2>Config:</h2><br><br>' + pprint.pformat(vals['config'], indent=4, width=60).replace('\n', '<br>') + \
            '<br><br><h2>Graph:</h2><br><br>' + svgmodel +'<br><br><h2>Net:</h2><br><br>'+ \
            pprint.pformat(vals['model'], indent=4, width=40).replace('\n', '<br>') + \
             '<br>' + \
