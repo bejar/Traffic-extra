@@ -31,6 +31,7 @@ from numpy.random import shuffle
 from scipy.ndimage import zoom
 from sklearn.decomposition import IncrementalPCA
 from Process.CamTram import CamTram
+import pickle
 __author__ = 'bejar'
 
 
@@ -431,6 +432,7 @@ def generate_data_day(day, z_factor, method='two', log=False):
     """
     ldata = []
     llabels = []
+    limages = []
     if method == 'one':
         dataset = generate_classification_dataset_one(day)
     else:
@@ -453,12 +455,16 @@ def generate_data_day(day, z_factor, method='two', log=False):
 
                     ldata.append(data)
                     llabels.append(l)
+                    limages.append(day + '/' + str(t) + '-' + cam)
 
     X_train = np.array(ldata)
     X_train = X_train.transpose((0,3,1,2)) # Theano ordering
     llabels = [i - 1 for i in llabels]  # change labels from 1-5 to 0-4
     np.save(dataset_path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), X_train)
     np.save(dataset_path + 'labels-D%s-Z%0.2f.npy' % (day, z_factor), np.array(llabels))
+    output = open('images-D%s-Z%0.2f.pkl' % (day, z_factor), 'wb')
+    pickle.dump(limages, output)
+    output.close()
 
 
 def generate_splitted_data_day(day, z_factor, method='two', log=False):
@@ -594,8 +600,8 @@ def info_dataset(ldaysTr, z_factor, reb=False):
 if __name__ == '__main__':
     #generate_classification_dataset_two('20161101')
 
-    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
-
+    # days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
+    days = list_days_generator(2016, 11, 1, 1)
     z_factor = 0.25
 
     for day in days:
