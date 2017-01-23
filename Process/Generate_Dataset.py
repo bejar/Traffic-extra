@@ -452,7 +452,6 @@ def generate_data_day(day, z_factor, method='two', log=False):
                     if z_factor is not None:
                         data = np.dstack((zoom(data[:, :, 0], z_factor), zoom(data[:, :, 1], z_factor),
                                           zoom(data[:, :, 2], z_factor)))
-
                     ldata.append(data)
                     llabels.append(l)
                     limages.append(day + '/' + str(t) + '-' + cam)
