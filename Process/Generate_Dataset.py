@@ -461,7 +461,7 @@ def generate_data_day(day, z_factor, method='two', log=False):
     llabels = [i - 1 for i in llabels]  # change labels from 1-5 to 0-4
     np.save(dataset_path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), X_train)
     np.save(dataset_path + 'labels-D%s-Z%0.2f.npy' % (day, z_factor), np.array(llabels))
-    output = open('images-D%s-Z%0.2f.pkl' % (day, z_factor), 'wb')
+    output = open(dataset_path + 'images-D%s-Z%0.2f.pkl' % (day, z_factor), 'wb')
     pickle.dump(limages, output)
     output.close()
 
@@ -599,9 +599,8 @@ def info_dataset(ldaysTr, z_factor, reb=False):
 if __name__ == '__main__':
     #generate_classification_dataset_two('20161101')
 
-    # days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
-    days = list_days_generator(2016, 11, 1, 1)
-    z_factor = 0.25
+    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
+    z_factor = 0.35
 
     for day in days:
         generate_data_day(day, z_factor)
