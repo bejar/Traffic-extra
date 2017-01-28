@@ -35,8 +35,8 @@
         <td> {{net}}</td>
         <td>{{data[net]['init']}}</td>
         <td>{{data[net]['end']}}</td>
-        <td>{{data[net]['acc']}}</td>
-        <td>{{data[net]['val_acc']}}</td>
+        <td>{{'%0.2f'|format(data[net]['acc']|float)}}</td>
+        <td>{{'%0.2f'|format(data[net]['val_acc']|float)}}</td>
         <td>
             <form action="/Graph" method="post">
             <button type="submit" name="graph"  value={{net}}> Graph </button>
