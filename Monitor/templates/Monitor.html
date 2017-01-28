@@ -47,7 +47,7 @@
        {% else %}
         <td>-</td>
         {% endif %}
-        <td>{{{'%0.2f'| format(data[net]['val_acc']|float)}}</td>
+        <td>{{'%0.2f'| format(data[net]['val_acc']|float)}}</td>
         {% if data[net]['val_acc_dir'] %}
         <td>+</td>
        {% else %}
