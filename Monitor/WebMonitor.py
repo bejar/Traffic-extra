@@ -35,7 +35,7 @@ import seaborn as sns
 
 from Utilities.DBConfig import mongoconnection
 import pprint
-
+import time
 
 __author__ = 'bejar'
 
@@ -67,6 +67,10 @@ def info():
             res[v['_id']]['host'] = v['host']
             res[v['_id']]['upd'] = v['time_upd']
             res[v['_id']]['init'] = v['time_init']
+            tminit = time.mktime(time.strptime(v['time_init'],'%Y-%m-%d %H:%M:%S'))
+            tmupd = time.mktime(time.strptime(v['time_upd'],'%Y-%m-%d %H:%M:%S'))
+            res[v['_id']]['eptime'] = ((tmupd-tminit)/ len(v['acc'])) /60.0
+
             if len(v['acc']) >1:
                 res[v['_id']]['acc_dir'] = v['acc'][-1] > v['acc'][-2]
                 res[v['_id']]['val_acc_dir'] = v['val_acc'][-1] > v['val_acc'][-2]
