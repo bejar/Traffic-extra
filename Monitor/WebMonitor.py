@@ -55,7 +55,7 @@ def info():
     db.authenticate(mongoconnection.user, password=mongoconnection.passwd)
     col = db[mongoconnection.col]
 
-    vals = col.find({'done': False}, {'_id':1,'acc':1, 'loss': 1, 'val_acc':1, 'val_loss':1, 'host':1, 'time_upd':1, 'time_init': 1})
+    vals = col.find({'done': False}, {'_id':1,'acc':1, 'loss': 1, 'val_acc':1, 'val_loss':1, 'host':1, 'time_upd':1, 'time_init': 1, 'config':1})
 
     res = {}
     for v in vals:
@@ -65,10 +65,15 @@ def info():
             res[v['_id']]['acc'] = v['acc'][-1]
             res[v['_id']]['val_acc'] = v['val_acc'][-1]
             res[v['_id']]['host'] = v['host']
-            res[v['_id']]['upd'] = v['time_upd']
-            res[v['_id']]['init'] = v['time_init']
             tminit = time.mktime(time.strptime(v['time_init'],'%Y-%m-%d %H:%M:%S'))
             tmupd = time.mktime(time.strptime(v['time_upd'],'%Y-%m-%d %H:%M:%S'))
+            res[v['_id']]['init'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tminit))
+            res[v['_id']]['upd'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tmupd))
+
+            tepoch = ((tmupd-tminit)/ len(v['acc']))
+            ep = v['config']['train']['epochs'] - len(v['acc'])
+            res[v['_id']]['end'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tmupd+(tepoch*ep)))
+
             res[v['_id']]['eptime'] = ((tmupd-tminit)/ len(v['acc'])) /60.0
 
             if len(v['acc']) >1:
@@ -120,7 +125,7 @@ def logs():
     db.authenticate(mongoconnection.user, password=mongoconnection.passwd)
     col = db[mongoconnection.col]
 
-    vals = col.find({},  {'final_acc':1, 'final_val_acc':1, 'time_init': 1, 'time_end': 1, 'time_upd':1, 'acc':1,'done':1, 'config':1, 'mark':1})
+    vals = col.find({},  {'final_acc':1, 'final_val_acc':1, 'time_init': 1, 'time_end': 1, 'time_upd':1, 'acc':1,'done':1, 'mark':1})
     res = {}
     for v in vals:
         if 'time_init' in v:
@@ -139,18 +144,9 @@ def logs():
                 res[v['_id']]['val_acc'] = 0
             res[v['_id']]['init'] = v['time_init']
             if 'time_end' in v:
-                res[v['_id']]['rtime'] = True
                 res[v['_id']]['end'] = v['time_end']
             else:
-                res[v['_id']]['rtime'] = False
-                if len(v['acc']) >1:
-                    tminit = time.mktime(time.strptime(v['time_init'], '%Y-%m-%d %H:%M:%S'))
-                    tmupd = time.mktime(time.strptime(v['time_upd'], '%Y-%m-%d %H:%M:%S'))
-                    tepoch = ((tmupd-tminit)/ len(v['acc']))
-                    ep = v['config']['train']['epochs'] - len(v['acc'])
-                    res[v['_id']]['end'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tmupd+(tepoch*ep)))
-                else:
-                    res[v['_id']]['end'] = 'undefined'
+                res[v['_id']]['end'] = 'pending'
 
     return render_template('Logs.html', data=res)
 

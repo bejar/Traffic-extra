@@ -22,7 +22,6 @@
         <th>NET</th>
         <th>Init Time</th>
         <th>End Time</th>
-
         <th>Acc</th>
         <th>Val Acc</th>
         <th>Graph</th>
@@ -41,11 +40,7 @@
         {% endif %}
 
         <td>{{data[net]['init']}}</td>
-        {%if data[net]['rtime']%}
-            <td>{{data[net]['end']}}</td>
-        {% else %}
-        <td><span style="color:red">{{data[net]['end']}}</span></td>
-         {% endif %}
+        <td>{{data[net]['end']}}</td>
         <td>{{'%0.2f'|format(data[net]['acc']|float)}}</td>
         <td>{{'%0.2f'|format(data[net]['val_acc']|float)}}</td>
         <td>
