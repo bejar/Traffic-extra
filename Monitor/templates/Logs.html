@@ -29,12 +29,23 @@
         <th>Model</th>
         <th>Report</th>
          <th>Delete</th>
+          <th>Mark</th>
+
    </tr>
     {% for net in data|sort %}
     <tr>
-        <td> {{net}}</td>
+        {%if data[net]['mark']%}
+        <td><span style="color:blue"> {{net}}</span></td>
+       {% else %}
+        <td>{{net}}</td>
+        {% endif %}
+
         <td>{{data[net]['init']}}</td>
-        <td>{{data[net]['end']}}</td>
+        {%if data[net]['rtime']%}
+            <td>{{data[net]['end']}}</td>
+        {% else %}
+        <td><span style="color:red">{{data[net]['end']}}</span></td>
+         {% endif %}
         <td>{{'%0.2f'|format(data[net]['acc']|float)}}</td>
         <td>{{'%0.2f'|format(data[net]['val_acc']|float)}}</td>
         <td>
@@ -57,7 +68,11 @@
            <form action="/Delete" method="post">
                <button type="submit" name="delete"  value={{net}}> Delete</button>
             </form>
-
+        </td>
+      <td>
+           <form action="/Mark" method="post">
+               <button type="submit" name="mark"  value={{net}}> Mark</button>
+            </form>
         </td>
     </tr>
     {% endfor %}

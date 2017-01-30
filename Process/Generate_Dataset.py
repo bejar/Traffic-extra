@@ -599,8 +599,9 @@ def info_dataset(ldaysTr, z_factor, reb=False):
 if __name__ == '__main__':
     #generate_classification_dataset_two('20161101')
 
-    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
-    z_factor = 0.35
+#    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
+    days = list_days_generator(2016, 12, 18, 31)
+    z_factor = 0.25
 
     for day in days:
         generate_data_day(day, z_factor)

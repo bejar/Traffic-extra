@@ -75,7 +75,7 @@ Cameras_ok = [
     'RondadeDaltSantGervasi',
     'RondadeDaltVelodrom',
     'RondaLitoralBonPastor',
-    'RondaLitoralMollFusta',
+#    'RondaLitoralMollFusta',
     'RondaLitoralZonaFranca',
     'TunelRovira'
 ]

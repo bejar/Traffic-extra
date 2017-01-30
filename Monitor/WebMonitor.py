@@ -120,11 +120,15 @@ def logs():
     db.authenticate(mongoconnection.user, password=mongoconnection.passwd)
     col = db[mongoconnection.col]
 
-    vals = col.find({},  {'final_acc':1, 'final_val_acc':1, 'time_init': 1, 'time_end': 1, 'done':1})
+    vals = col.find({},  {'final_acc':1, 'final_val_acc':1, 'time_init': 1, 'time_end': 1, 'time_upd':1, 'acc':1,'done':1, 'config':1, 'mark':1})
     res = {}
     for v in vals:
         if 'time_init' in v:
             res[v['_id']] = {}
+            if 'mark' in v:
+                res[v['_id']]['mark'] = v['mark']
+            else:
+                res[v['_id']]['mark'] = False
             if 'final_acc' in v:
                 res[v['_id']]['acc'] = v['final_acc']
             else:
@@ -135,11 +139,55 @@ def logs():
                 res[v['_id']]['val_acc'] = 0
             res[v['_id']]['init'] = v['time_init']
             if 'time_end' in v:
+                res[v['_id']]['rtime'] = True
                 res[v['_id']]['end'] = v['time_end']
             else:
-                 res[v['_id']]['end'] = 'pending'
+                res[v['_id']]['rtime'] = False
+                tminit = time.mktime(time.strptime(v['time_init'], '%Y-%m-%d %H:%M:%S'))
+                tmupd = time.mktime(time.strptime(v['time_upd'], '%Y-%m-%d %H:%M:%S'))
+                tepoch = ((tmupd-tminit)/ len(v['acc']))
+                ep = v['config']['train']['epochs'] - len(v['acc'])
+                res[v['_id']]['end'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tmupd+(tepoch*ep)))
 
     return render_template('Logs.html', data=res)
+
+@app.route('/Mark', methods=['GET','POST'])
+def mark():
+    """
+    Marks an experiment
+    :return:
+    """
+    payload = request.form['mark']
+    client = MongoClient(mongoconnection.server)
+    db = client[mongoconnection.db]
+    db.authenticate(mongoconnection.user, password=mongoconnection.passwd)
+    col = db[mongoconnection.col]
+    vals = col.find_one({'_id': int(payload)},  {'mark':1, 'done':1})
+
+    text = ' Not Marked'
+    if vals['done']:
+        if not 'mark' in vals:
+            marked = True
+        else:
+            marked = not vals['mark']
+
+        col.update({'_id':vals['_id']},{'$set': {'mark': marked}})
+        text = ' Marked'
+
+    head = """
+    <!DOCTYPE html>
+<html>
+<head>
+    <title>Keras NN Mark </title>
+   <meta http-equiv="refresh" content="3;http://%s:%d/Logs" />
+  </head>
+<body>
+""" % (hostname, port)
+    end = '</body></html>'
+
+
+    return head + str(payload) + text + end
+
 
 @app.route('/Delete', methods=['GET','POST'])
 def delete():
