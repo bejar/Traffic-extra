@@ -91,8 +91,10 @@ def retrieve_camera(cam, name, ptime):
         with open(cameras_path_MAD + todaypath + '/' + '%s-%s.jpg' % (ptime, name), 'wb') as handler:
             handler.write(img_data)
     except ConnectionError:
+        print('error camera: '+name)
         pass
     except ChunkedEncodingError:
+        print('error camera: '+name)
         pass
 
 if __name__ == '__main__':
@@ -124,8 +126,10 @@ if __name__ == '__main__':
             with open(status_path_MAD + todaypath + '/' + '%s-niveles.kml' % ptime, 'wb') as handler:
                     handler.write(tram)
         except ChunkedEncodingError:
+            print('Error retrieving status')
             pass
         except ConnectionError:
+            print('Error retrieving status')
             pass
 
         try:
@@ -133,8 +137,10 @@ if __name__ == '__main__':
             with open(status_path_MAD + todaypath + '/' + '%s-intensidades.kml' % ptime, 'wb') as handler:
                     handler.write(tram)
         except ChunkedEncodingError:
+            print('Error retrieving intensity')
             pass
         except ConnectionError:
+            print('Error retrieving intensity')
             pass
 
         print('%s Retrieving Cameras' % time.strftime('%H:%M %d-%m-%Y',time.localtime()))

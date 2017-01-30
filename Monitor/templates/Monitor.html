@@ -56,12 +56,12 @@
         {% endif %}
         <td>
             <form action="/Graph" method="post">
-            <button type="submit" name="graph"  value={{net}}> Graph </button>
+            <button type="submit" name="graph"  value={{data[net]['id']}}> Graph </button>
             </form>
         </td>
        <td>
            <form action="/Model" method="post">
-               <button type="submit" name="model"  value={{net}}> Model</button>
+               <button type="submit" name="model"  value={{data[net]['id']}}> Model</button>
             </form>
 
         </td>
