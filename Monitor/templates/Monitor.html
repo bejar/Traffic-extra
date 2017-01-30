@@ -35,7 +35,7 @@
     </tr>
     {% for net in data|sort%}
     <tr>
-        <td> {{net}}</td>
+        <td>{{data[net]['id']}}</td>
         <td>{{data[net]['host']}}</td>
         <td>{{data[net]['init']}}</td>
         <td>{{data[net]['upd']}}</td>

@@ -60,28 +60,30 @@ def info():
     res = {}
     for v in vals:
         if len(v['acc']) > 0:
-            res[v['_id']] = {}
-            res[v['_id']]['epoch'] = len(v['acc'])
-            res[v['_id']]['acc'] = v['acc'][-1]
-            res[v['_id']]['val_acc'] = v['val_acc'][-1]
-            res[v['_id']]['host'] = v['host']
-            tminit = time.mktime(time.strptime(v['time_init'],'%Y-%m-%d %H:%M:%S'))
-            tmupd = time.mktime(time.strptime(v['time_upd'],'%Y-%m-%d %H:%M:%S'))
-            res[v['_id']]['init'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tminit))
-            res[v['_id']]['upd'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tmupd))
-
+            tminit = time.mktime(time.strptime(v['time_init'], '%Y-%m-%d %H:%M:%S'))
+            tmupd = time.mktime(time.strptime(v['time_upd'], '%Y-%m-%d %H:%M:%S'))
             tepoch = ((tmupd-tminit)/ len(v['acc']))
             ep = v['config']['train']['epochs'] - len(v['acc'])
-            res[v['_id']]['end'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tmupd+(tepoch*ep)))
+            id = int(tmupd+(tepoch*ep))
 
-            res[v['_id']]['eptime'] = ((tmupd-tminit)/ len(v['acc'])) /60.0
+            # id is the approximated end time in seconds, so the table will be sorted that way
+            res[id] = {}
+            res[id]['id'] = v['_id']
+            res[id]['epoch'] = len(v['acc'])
+            res[id]['acc'] = v['acc'][-1]
+            res[id]['val_acc'] = v['val_acc'][-1]
+            res[id]['host'] = v['host']
+            res[id]['init'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tminit))
+            res[id]['upd'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tmupd))
+            res[id]['end'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tmupd+(tepoch*ep)))
+            res[id]['eptime'] = ((tmupd-tminit)/ len(v['acc'])) /60.0
 
             if len(v['acc']) >1:
-                res[v['_id']]['acc_dir'] = v['acc'][-1] > v['acc'][-2]
-                res[v['_id']]['val_acc_dir'] = v['val_acc'][-1] > v['val_acc'][-2]
+                res[id]['acc_dir'] = v['acc'][-1] > v['acc'][-2]
+                res[id]['val_acc_dir'] = v['val_acc'][-1] > v['val_acc'][-2]
             else:
-                res[v['_id']]['acc_dir'] = True
-                res[v['_id']]['val_acc_dir'] = True
+                res[id]['acc_dir'] = True
+                res[id]['val_acc_dir'] = True
 
 
 
