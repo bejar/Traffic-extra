@@ -143,11 +143,14 @@ def logs():
                 res[v['_id']]['end'] = v['time_end']
             else:
                 res[v['_id']]['rtime'] = False
-                tminit = time.mktime(time.strptime(v['time_init'], '%Y-%m-%d %H:%M:%S'))
-                tmupd = time.mktime(time.strptime(v['time_upd'], '%Y-%m-%d %H:%M:%S'))
-                tepoch = ((tmupd-tminit)/ len(v['acc']))
-                ep = v['config']['train']['epochs'] - len(v['acc'])
-                res[v['_id']]['end'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tmupd+(tepoch*ep)))
+                if len(v['acc']) >1:
+                    tminit = time.mktime(time.strptime(v['time_init'], '%Y-%m-%d %H:%M:%S'))
+                    tmupd = time.mktime(time.strptime(v['time_upd'], '%Y-%m-%d %H:%M:%S'))
+                    tepoch = ((tmupd-tminit)/ len(v['acc']))
+                    ep = v['config']['train']['epochs'] - len(v['acc'])
+                    res[v['_id']]['end'] = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(tmupd+(tepoch*ep)))
+                else:
+                    res[v['_id']]['end'] = 'undefined'
 
     return render_template('Logs.html', data=res)
 
