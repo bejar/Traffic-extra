@@ -21,13 +21,9 @@ import socket
 
 from flask import Flask, render_template, request
 from pymongo import MongoClient
-
 import StringIO
 
 import bokeh.plotting as plt
-
-import matplotlib
-matplotlib.use('Agg')
 
 import  matplotlib.pyplot as plt
 import base64
@@ -36,6 +32,8 @@ import seaborn as sns
 from Utilities.DBConfig import mongoconnection
 import pprint
 import time
+import matplotlib
+matplotlib.use('Agg')
 
 __author__ = 'bejar'
 
@@ -127,7 +125,7 @@ def logs():
     db.authenticate(mongoconnection.user, password=mongoconnection.passwd)
     col = db[mongoconnection.col]
 
-    vals = col.find({},  {'final_acc':1, 'final_val_acc':1, 'time_init': 1, 'time_end': 1, 'time_upd':1, 'acc':1,'done':1, 'mark':1})
+    vals = col.find({},  {'final_acc':1, 'final_val_acc':1, 'time_init': 1, 'time_end': 1, 'time_upd':1, 'acc':1,'done':1, 'mark':1, 'config':1})
     res = {}
     for v in vals:
         if 'time_init' in v:
@@ -149,6 +147,7 @@ def logs():
                 res[v['_id']]['end'] = v['time_end']
             else:
                 res[v['_id']]['end'] = 'pending'
+            res[v['_id']]['zfactor'] = v['config']['zfactor']
 
     return render_template('Logs.html', data=res)
 

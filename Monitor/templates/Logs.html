@@ -20,6 +20,7 @@
 <table>
     <tr>
         <th>NET</th>
+        <th>ZF</th>
         <th>Init Time</th>
         <th>End Time</th>
         <th>Acc</th>
@@ -38,7 +39,7 @@
        {% else %}
         <td>{{net}}</td>
         {% endif %}
-
+        <td>{{data[net]['zfactor']}}</td>
         <td>{{data[net]['init']}}</td>
         <td>{{data[net]['end']}}</td>
         <td>{{'%0.2f'|format(data[net]['acc']|float)}}</td>
