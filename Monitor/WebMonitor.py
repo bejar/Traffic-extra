@@ -58,9 +58,17 @@ def info():
     res = {}
     for v in vals:
         if len(v['acc']) > 0:
+
+            # if we are resuming a stopped training we have to discount the epochs of the previous training to
+            # compute the end time
+            if 'epochs_trained' not in res[id]['config']['train']:
+                epochdiscount = 0
+            else:
+                epochdiscount = res[id]['config']['train']['epochs_trained']
+
             tminit = time.mktime(time.strptime(v['time_init'], '%Y-%m-%d %H:%M:%S'))
             tmupd = time.mktime(time.strptime(v['time_upd'], '%Y-%m-%d %H:%M:%S'))
-            tepoch = ((tmupd-tminit)/ len(v['acc']))
+            tepoch = ((tmupd-tminit)/ (len(v['acc']) - epochdiscount))
             ep = v['config']['train']['epochs'] - len(v['acc'])
             id = int(tmupd+(tepoch*ep))
 
@@ -74,7 +82,9 @@ def info():
             res[id]['init'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tminit))
             res[id]['upd'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tmupd))
             res[id]['end'] = time.strftime('%m/%d %H:%M:%S', time.localtime(tmupd+(tepoch*ep)))
-            res[id]['eptime'] = ((tmupd-tminit)/ len(v['acc'])) /60.0
+
+
+            res[id]['eptime'] = ((tmupd-tminit)/ (len(v['acc']))) /60.0
 
             if len(v['acc']) >1:
                 res[id]['acc_dir'] = v['acc'][-1] > v['acc'][-2]
