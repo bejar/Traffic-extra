@@ -32,6 +32,8 @@ from scipy.ndimage import zoom
 from sklearn.decomposition import IncrementalPCA
 from Process.CamTram import CamTram
 import pickle
+import h5py
+
 __author__ = 'bejar'
 
 
@@ -644,7 +646,6 @@ def generate_image_labels(day, mxdelay=30):
     return assoc
 
 
-
 def generate_labeled_dataset_day(day, z_factor, mxdelay=60, log=False, imgordering='th'):
     """
     Generates a raw dataset for a day with a zoom factor (data and labels)
@@ -676,7 +677,7 @@ def generate_labeled_dataset_day(day, z_factor, mxdelay=60, log=False, imgorderi
 
     X_train = np.array(ldata)
     if imgordering == 'th':
-        X_train = X_train.transpose((0,3,1,2)) # Theano ordering
+        X_train = X_train.transpose((0,3,1,2)) # Theano image ordering
     print(X_train.shape)
 
     llabels = [i - 1 for i in llabels]  # change labels from 1-5 to 0-4
@@ -688,14 +689,136 @@ def generate_labeled_dataset_day(day, z_factor, mxdelay=60, log=False, imgorderi
     output.close()
 
 
+def load_generated_day(datapath, day, z_factor):
+    """
+    Load the already generated datasets
+
+    :param ldaysTr:
+    :param ldaysTs:
+    :param z_factor:
+    :return:
+    """
+
+    X_train = np.load(datapath + 'data-D%s-Z%0.2f.npy' % (day, z_factor))
+    y_train = np.load(datapath + 'labels-D%s-Z%0.2f.npy' % (day, z_factor))
+    output = open(datapath + 'images-D%s-Z%0.2f.pkl' % (day, z_factor), 'rb')
+    img_path = pickle.load(output)
+    output.close()
+
+    return X_train, y_train, img_path
+
+
+def chunkify(lchunks, size):
+    """
+    Returns the saving list for the data with chunks of size = size
+    Sure that there is a more straightforward algorithm
+    :param lchunks:
+    :param size:
+    :return:
+    """
+    accum = np.zeros(len(lchunks)+1)
+    for i in range(len(lchunks)):
+        accum[i+1] = accum[i] + lchunks[i]
+    lpart = []
+
+    csize = size
+
+    # Compute indices that fall in each *size* partition
+    i = 1
+    lacumm = []
+    while csize < accum[len(lchunks)]:
+        while accum[i] < csize:
+            lacumm.append(i-1)
+            i += 1
+        lacumm.append(i-1)
+        lpart.append(lacumm)
+        csize += size
+        while  accum[i] >= csize:
+            lpart.append([i-1])
+            csize += size
+        lacumm = []
+
+
+    # Number of examples per index in each partition
+    lcut = []
+    for i, lp in enumerate(lpart):
+        lpos = []
+        if len(lp) >1:
+            for j, p in enumerate(lp):
+                if j == 0:
+                    lpos.append((p,  accum[p+1]- size*(i)))
+                elif j == len(lp) -1:
+                    lpos.append((p,  size*(i+1) -accum[p]))
+                else:
+                    lpos.append((p, lchunks[p]))
+        else:
+            lpos.append((lp[0],size))
+        lcut.append(lpos)
+
+
+    return lcut
+
+
+def generate_training_dataset(datapath, ldays, chunk=1024, z_factor=0.25):
+    """
+    Generates an hdf5 file with blocks of data for training
+    :param ldays:
+    :param zfactor:
+    :return:
+    """
+
+    nlabels = []
+    for i, day in enumerate(ldays):
+        labels = np.load(datapath + 'labels-D%s-Z%0.2f.npy' % (day, z_factor))
+        nlabels.append(len(labels))
+
+    lsave = chunkify(nlabels, chunk)
+
+    print lsave
+
+    # sfile = h5py.File(datapath + '/train-Z%0.2f' + '.hdf5'% z_factor, 'w')
+
+
+    prev = {}
+    for save in lsave:
+
+        curr = {}
+        for nday, nex in save:
+            print 'DY, EX = ', nday, nex
+            curr[ldays[nday]] = [load_generated_day(datapath, ldays[nday], z_factor), nex, 0]
+            if ldays[nday] in prev:
+                curr[ldays[nday]][2] += prev[ldays[nday]][1]
+                print '++++++++++++++previo', curr[ldays[nday]][2]
+
+        X_train = []
+        y_train = []
+        imgpath = []
+        for day in curr:
+
+            indi = int(curr[day][2])
+            indf = int(curr[day][2] + curr[day][1])
+
+
+            print 'IND=', indi, indf
+            X_train.append(curr[day][0][0][indi:indf])
+            y_train.extend(curr[day][0][1][indi:indf])
+            imgpath.extend(curr[day][0][2][indi:indf])
+
+        X_train = np.concatenate(X_train)
+        prev = curr
+
+        print('DATA= ', X_train.shape)
+        print('LAB=', len(y_train))
+        print('IMG =', len(imgpath))
+
 
 
 if __name__ == '__main__':
-    #generate_classification_dataset_two('20161101')
+
 
 #    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
-    days = list_days_generator(2016, 11, 1, 30)+ list_days_generator(2016, 12, 1, 2)
-    z_factor = 0.35
+    days = list_days_generator(2016, 11, 1, 5)
+    z_factor = 0.25
 
     # for day in days:
     #     generate_data_day(day, z_factor, method='two', mxdelay=60)
@@ -712,6 +835,8 @@ if __name__ == '__main__':
     # data, labels = load_generated_dataset(dataset_path, days, z_factor)
     #
     # print(data.shape)
-    for day in days:
-        generate_labeled_dataset_day(day, z_factor, mxdelay=15, imgordering='th')
+    # for day in days:
+    #     generate_labeled_dataset_day(day, z_factor, mxdelay=15, imgordering='th')
 
+
+    generate_training_dataset(dataset_path, days, z_factor=z_factor)
