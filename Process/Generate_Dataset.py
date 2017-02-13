@@ -132,12 +132,13 @@ def generate_classification_dataset_one(day, cpatt=None):
     return assoc
 
 
-def generate_classification_dataset_two(day, cpatt=None):
+def generate_classification_dataset_two(day, cpatt=None, mxdelay=60):
     """
     Generates a dictionary with the dates of the images with lists that contain the camera name and current and predicted
     traffic status using the two nearest prediction in space and time
 
     :param day:
+    :param mxdelay: Maximum delay distance between image and status label
     :return:
     """
 
@@ -155,17 +156,17 @@ def generate_classification_dataset_two(day, cpatt=None):
         for d in ldata:
             diff = dist_time(imgtime, d.date)
             if vmin > np.abs(diff): # Only if it is ahead in time
-                if diff > 0:
+                if diff >= 0:
                     vmin2 = vmin
                     vmin = diff
                     dmin2 = dmin
                     dmin = d
             elif vmin2 > np.abs(diff):
-                if diff > 0 and diff != vmin:
+                if diff >= 0 and diff != vmin:
                     vmin2 = diff
                     dmin2 = d
-
-        if dmin is not None and dmin2 is not None and vmin < 60 and vmin2 < 60:
+        if dmin is not None and dmin2 is not None and vmin < mxdelay and vmin2 < mxdelay:
+            print(vmin, vmin2)
             lclass = []
             for img in camdic[imgtime]:
                 tram1 = CTram.ct[img][0]
@@ -283,7 +284,6 @@ def generate_dataset(ldaysTr, z_factor, method='one', cpatt=None):
     :return:
 
     """
-    # -------------------- Train Set ------------------
     ldataTr = []
     llabelsTr = []
 
@@ -424,7 +424,7 @@ def generate_rebalanced_dataset(ldaysTr, ndays, z_factor, PCA=True, ncomp=100):
     np.save(dataset_path + 'labels-RB-Z%0.2f-C%d.npy' % (z_factor, ncomp), np.array(y_train))
 
 
-def generate_data_day(day, z_factor, method='two', log=False):
+def generate_data_day(day, z_factor, method='two', mxdelay=60, log=False):
     """
     Generates a raw dataset for a day with a zoom factor (data and labels)
     :param z_factor:
@@ -436,7 +436,7 @@ def generate_data_day(day, z_factor, method='two', log=False):
     if method == 'one':
         dataset = generate_classification_dataset_one(day)
     else:
-        dataset = generate_classification_dataset_two(day)
+        dataset = generate_classification_dataset_two(day, mxdelay=mxdelay)
     for t in dataset:
         for cam, l, _, _ in dataset[t]:
             if l != 0 and l != 6:
@@ -513,6 +513,7 @@ def generate_splitted_data_day(day, z_factor, method='two', log=False):
     for l in np.unique(llabels):
         sel = llabels == l
         np.save(process_path + 'data-D%s-Z%0.2f-L%d.npy' % (day, z_factor, l), data[sel])
+
 
 def generate_rebalanced_data_day(day, z_factor, pclasses):
     """
@@ -596,15 +597,108 @@ def info_dataset(ldaysTr, z_factor, reb=False):
         y_train.extend(data)
     print('TOTAL=', Counter(list(y_train)))
 
+
+# --------------------------------------------------------------------------------------
+# New functions for generating the datasets
+
+def generate_image_labels(day, mxdelay=30):
+    """
+    Generates a dictionary with the dates of the images with lists that contain the camera name and current
+    traffic status using the two nearest prediction in space
+
+    :param day:
+    :param mxdelay: Maximum delay distance between image and status label
+    :return:
+    """
+
+    camdic = get_day_images_data(day)
+    ldata = get_day_predictions(day)
+    assoc = {}
+    CTram = CamTram()
+
+    for imgtime in sorted(camdic):
+        # Look for the status and forecast closer to the image but always in the future
+        dmin = None
+        vmin = 100
+
+        # Find the closest prediction in time for the day
+        for d in ldata:
+            diff = dist_time(imgtime, d.date)
+            if vmin > np.abs(diff): # Only if it is ahead in time
+                if diff >= 0:
+                    vmin = diff
+                    dmin = d
+
+        if dmin is not None and vmin < mxdelay:
+            # print vmin, imgtime, dmin.date
+            lclass = []
+            for img in camdic[imgtime]:
+                # Two closest positions to the camera
+                tram1 = CTram.ct[img][0]
+                tram2 = CTram.ct[img][1]
+
+                # store for an image of that time the name, worst status from the two closest positions
+                lclass.append((img, max(dmin.dt[tram1][0], dmin.dt[tram2][0])))
+            assoc[imgtime] = lclass
+
+    return assoc
+
+
+
+def generate_labeled_dataset_day(day, z_factor, mxdelay=60, log=False, imgordering='th'):
+    """
+    Generates a raw dataset for a day with a zoom factor (data and labels)
+    :param z_factor:
+    :return:
+    """
+    ldata = []
+    llabels = []
+    limages = []
+    dataset = generate_image_labels(day, mxdelay=mxdelay)
+    for t in dataset:
+        for cam, l in dataset[t]:
+            if l != 0 and l != 6:
+                if log:
+                    print(cameras_path + day + '/' + str(t) + '-' + cam + '.gif')
+                image = mpimg.imread(cameras_path + day + '/' + str(t) + '-' + cam + '.gif')
+                if np.sum(image == 254) < 100000:
+                    del image
+                    im = Image.open(cameras_path + day + '/' + str(t) + '-' + cam + '.gif').convert('RGB')
+                    data = np.asarray(im)
+                    data = data[5:235, 5:315, :].astype('float32')
+                    data /= 255.0
+                    if z_factor is not None:
+                        data = np.dstack((zoom(data[:, :, 0], z_factor), zoom(data[:, :, 1], z_factor),
+                                          zoom(data[:, :, 2], z_factor)))
+                    ldata.append(data)
+                    llabels.append(l)
+                    limages.append(day + '/' + str(t) + '-' + cam)
+
+    X_train = np.array(ldata)
+    if imgordering == 'th':
+        X_train = X_train.transpose((0,3,1,2)) # Theano ordering
+    print(X_train.shape)
+
+    llabels = [i - 1 for i in llabels]  # change labels from 1-5 to 0-4
+    print(Counter(llabels))
+    np.save(process_path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), X_train)
+    np.save(process_path + 'labels-D%s-Z%0.2f.npy' % (day, z_factor), np.array(llabels))
+    output = open(process_path + 'images-D%s-Z%0.2f.pkl' % (day, z_factor), 'wb')
+    pickle.dump(limages, output)
+    output.close()
+
+
+
+
 if __name__ == '__main__':
     #generate_classification_dataset_two('20161101')
 
 #    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
-    days = list_days_generator(2016, 12, 18, 31)
-    z_factor = 0.25
+    days = list_days_generator(2016, 11, 1, 30)+ list_days_generator(2016, 12, 1, 2)
+    z_factor = 0.35
 
-    for day in days:
-        generate_data_day(day, z_factor)
+    # for day in days:
+    #     generate_data_day(day, z_factor, method='two', mxdelay=60)
     #
     # for day in days:
     #     generate_splitted_data_day(day, z_factor)
@@ -618,3 +712,6 @@ if __name__ == '__main__':
     # data, labels = load_generated_dataset(dataset_path, days, z_factor)
     #
     # print(data.shape)
+    for day in days:
+        generate_labeled_dataset_day(day, z_factor, mxdelay=15, imgordering='th')
+

@@ -61,13 +61,14 @@ def info():
 
             # if we are resuming a stopped training we have to discount the epochs of the previous training to
             # compute the end time
-            if 'epochs_trained' not in res[id]['config']['train']:
+            if 'epochs_trained' not in v['config']['train']:
                 epochdiscount = 0
             else:
-                epochdiscount = res[id]['config']['train']['epochs_trained']
+                epochdiscount = v['config']['train']['epochs_trained']
 
             tminit = time.mktime(time.strptime(v['time_init'], '%Y-%m-%d %H:%M:%S'))
-            tmupd = time.mktime(time.strptime(v['time_upd'], '%Y-%m-%d %H:%M:%S'))
+            tmupd = time.mktime(time.strptime(v['time_upd'], '%Y-%m-%d %H:%M:%S')) 
+            
             tepoch = ((tmupd-tminit)/ (len(v['acc']) - epochdiscount))
             ep = v['config']['train']['epochs'] - len(v['acc'])
             id = int(tmupd+(tepoch*ep))
