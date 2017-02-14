@@ -603,7 +603,7 @@ def info_dataset(ldaysTr, z_factor, reb=False):
 # --------------------------------------------------------------------------------------
 # New functions for generating the datasets
 
-def generate_image_labels(day, mxdelay=30):
+def generate_image_labels(day, mxdelay=30, onlyfuture=True):
     """
     Generates a dictionary with the dates of the images with lists that contain the camera name and current
     traffic status using the two nearest prediction in space
@@ -627,9 +627,16 @@ def generate_image_labels(day, mxdelay=30):
         for d in ldata:
             diff = dist_time(imgtime, d.date)
             if vmin > np.abs(diff): # Only if it is ahead in time
-                if diff >= 0:
-                    vmin = diff
+                if onlyfuture:
+                    if diff >= 0:
+                        vmin = np.abs(diff)
+                        dmin = d
+                else:
+                    vmin = np.abs(diff)
                     dmin = d
+
+
+
 
         if dmin is not None and vmin < mxdelay:
             # print vmin, imgtime, dmin.date
@@ -646,7 +653,7 @@ def generate_image_labels(day, mxdelay=30):
     return assoc
 
 
-def generate_labeled_dataset_day(day, z_factor, mxdelay=60, log=False, imgordering='th'):
+def generate_labeled_dataset_day(day, z_factor, mxdelay=60, onlyfuture=True, log=False, imgordering='th'):
     """
     Generates a raw dataset for a day with a zoom factor (data and labels)
     :param z_factor:
@@ -655,7 +662,7 @@ def generate_labeled_dataset_day(day, z_factor, mxdelay=60, log=False, imgorderi
     ldata = []
     llabels = []
     limages = []
-    dataset = generate_image_labels(day, mxdelay=mxdelay)
+    dataset = generate_image_labels(day, mxdelay=mxdelay, onlyfuture=onlyfuture)
     for t in dataset:
         for cam, l in dataset[t]:
             if l != 0 and l != 6:
@@ -708,55 +715,43 @@ def load_generated_day(datapath, day, z_factor):
     return X_train, y_train, img_path
 
 
+
 def chunkify(lchunks, size):
     """
     Returns the saving list for the data with chunks of size = size
-    Sure that there is a more straightforward algorithm
     :param lchunks:
     :param size:
     :return:
     """
-    accum = np.zeros(len(lchunks)+1)
-    for i in range(len(lchunks)):
-        accum[i+1] = accum[i] + lchunks[i]
-    lpart = []
 
+    accum = 0
     csize = size
-
-    # Compute indices that fall in each *size* partition
-    i = 1
-    lacumm = []
-    while csize < accum[len(lchunks)]:
-        while accum[i] < csize:
-            lacumm.append(i-1)
-            i += 1
-        lacumm.append(i-1)
-        lpart.append(lacumm)
-        csize += size
-        while  accum[i] >= csize:
-            lpart.append([i-1])
-            csize += size
-        lacumm = []
-
-
-    # Number of examples per index in each partition
+    i = 0
+    quant = lchunks[0]
     lcut = []
-    for i, lp in enumerate(lpart):
-        lpos = []
-        if len(lp) >1:
-            for j, p in enumerate(lp):
-                if j == 0:
-                    lpos.append((p,  accum[p+1]- size*(i)))
-                elif j == len(lp) -1:
-                    lpos.append((p,  size*(i+1) -accum[p]))
-                else:
-                    lpos.append((p, lchunks[p]))
-        else:
-            lpos.append((lp[0],size))
-        lcut.append(lpos)
+    lpos = []
 
+    while i < len(lchunks):
+        if accum + quant <= size:
+            accum += quant
+            lpos.append((i, quant))
+            i += 1
+            if i < len(lchunks):
+                quant = lchunks[i]
+            else:
+                if accum == size:
+                    lcut.append(lpos)
+        else:
+            lpos.append((i, size - accum))
+            lcut.append(lpos)
+            lpos = []
+            quant = quant - (size - accum)
+            accum = 0
+            csize += size
 
     return lcut
+
+
 
 
 def generate_training_dataset(datapath, ldays, chunk=1024, z_factor=0.25):
@@ -774,21 +769,17 @@ def generate_training_dataset(datapath, ldays, chunk=1024, z_factor=0.25):
 
     lsave = chunkify(nlabels, chunk)
 
-    print lsave
-
-    # sfile = h5py.File(datapath + '/train-Z%0.2f' + '.hdf5'% z_factor, 'w')
+    sfile = h5py.File(datapath + '/train-Z%0.2f.hdf5'% z_factor, 'w')
 
 
     prev = {}
-    for save in lsave:
+    for nchunk, save in enumerate(lsave):
 
         curr = {}
         for nday, nex in save:
-            print 'DY, EX = ', nday, nex
             curr[ldays[nday]] = [load_generated_day(datapath, ldays[nday], z_factor), nex, 0]
             if ldays[nday] in prev:
                 curr[ldays[nday]][2] += prev[ldays[nday]][1]
-                print '++++++++++++++previo', curr[ldays[nday]][2]
 
         X_train = []
         y_train = []
@@ -798,26 +789,32 @@ def generate_training_dataset(datapath, ldays, chunk=1024, z_factor=0.25):
             indi = int(curr[day][2])
             indf = int(curr[day][2] + curr[day][1])
 
-
-            print 'IND=', indi, indf
             X_train.append(curr[day][0][0][indi:indf])
             y_train.extend(curr[day][0][1][indi:indf])
             imgpath.extend(curr[day][0][2][indi:indf])
 
         X_train = np.concatenate(X_train)
+        y_train = np.array(y_train)
+        imgpath = [n.encode("ascii", "ignore") for n in imgpath]
         prev = curr
 
-        print('DATA= ', X_train.shape)
-        print('LAB=', len(y_train))
-        print('IMG =', len(imgpath))
+        namechunk = 'chunk%03d' % nchunk
+        sfile.require_dataset(namechunk + '/' + 'data', X_train.shape, dtype='f',
+                              data=X_train, compression='gzip')
 
+        sfile.require_dataset(namechunk + '/' + 'labels', y_train.shape, dtype='f',
+                              data=y_train, compression='gzip')
 
+        sfile.require_dataset(namechunk + '/' + 'imgpath', (len(imgpath),1), dtype='S100',
+                              data=imgpath, compression='gzip')
+        sfile.flush()
+
+    sfile.close()
 
 if __name__ == '__main__':
 
-
-#    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
-    days = list_days_generator(2016, 11, 1, 5)
+    days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
+    # days = list_days_generator(2016, 11, 1, 5)
     z_factor = 0.25
 
     # for day in days:
@@ -836,7 +833,8 @@ if __name__ == '__main__':
     #
     # print(data.shape)
     # for day in days:
-    #     generate_labeled_dataset_day(day, z_factor, mxdelay=15, imgordering='th')
+    #     generate_labeled_dataset_day(day, z_factor, mxdelay=15, onlyfuture=False, imgordering='th')
 
 
-    generate_training_dataset(dataset_path, days, z_factor=z_factor)
+    generate_training_dataset(process_path, days, z_factor=z_factor)
+
