@@ -58,11 +58,7 @@ def name_days_file(ldays):
     :param ldays:
     :return:
     """
-
-    p = []
-    for year, month, iday, fday in ldays:
-        p.extend(list_days_generator(year, month, iday, fday))
-    return p[0] + '-' + p[-1]
+    return ldays[0] + '-' + ldays[-1]
 
 
 def info_dataset(path, ldaysTr, z_factor):
@@ -518,8 +514,8 @@ def generate_training_dataset(datapath, ldays, chunk=1024, z_factor=0.25):
 
 if __name__ == '__main__':
 
-    # days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
-    days = list_days_generator(2016, 12, 1, 3)
+    # days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 3)
+    days = list_days_generator(2016, 11, 1, 30)
     z_factor = 0.25
 
     # Old day datafiles generation
@@ -528,13 +524,13 @@ if __name__ == '__main__':
 
 
     # Uncomment to view information of day datafiles (examples per class)
-    info_dataset(process_path, days, z_factor)
+    # info_dataset(process_path, days, z_factor)
 
 
-    # # Uncomment to generate files for a list of days
+    # Uncomment to generate files for a list of days
     # for day in days:
     #     generate_labeled_dataset_day(process_path, day, z_factor, mxdelay=15, onlyfuture=False, imgordering='th')
 
-    # # Uncoment to generate a HDF5 file for a list of days
-    # generate_training_dataset(process_path, days, z_factor=z_factor)
+    # Uncoment to generate a HDF5 file for a list of days
+    generate_training_dataset(process_path, days, chunk= 1024, z_factor=z_factor)
 

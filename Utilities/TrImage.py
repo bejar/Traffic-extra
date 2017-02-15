@@ -67,6 +67,16 @@ class TrImage():
         """
         return self.data
 
+    def dataAugmentation(self):
+        """
+        Generates variarions of the original image, now does nothing
+
+        Possibilities: horizontal flip, (zoom in + crop) parts of the image
+        :return:
+        """
+
+        return None
+
     def show(self):
         """
         Plots the data from the image
@@ -83,4 +93,5 @@ class TrImage():
 if __name__ == '__main__':
     from Utilities.Constants import cameras_path
     image = TrImage(cameras_path + '/20161101/201611011453-RondaLitoralZonaFranca.gif', z_factor=0.25, crop=(5,5,5,5))
+    print image.data.shape
     image.show()
