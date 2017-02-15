@@ -33,6 +33,7 @@ from sklearn.decomposition import IncrementalPCA
 from Process.CamTram import CamTram
 import pickle
 import h5py
+from Utilities.TrImage import TrImage
 
 __author__ = 'bejar'
 
@@ -79,7 +80,7 @@ def info_dataset(path, ldaysTr, z_factor):
         data = np.load(path + fname + '-D%s-Z%0.2f.npy' % (day, z_factor))
         print(day, Counter(data))
         y_train.extend(data)
-    print('TOTAL=', Counter(list(y_train)))
+    print('TOTAL=', Counter(list(y_train)), len(y_train))
 
 
 
@@ -176,7 +177,6 @@ def generate_classification_dataset_one(day, cpatt=None):
             lclass = []
             for img in camdic[imgtime]:
                 tram = CTram.ct[img][0]
-                # print(imgtime, dmin.dt[tram], img)
                 # store for an image of that time the name, closest status, prediction and next status
                 lclass.append((img, dmin.dt[tram][0], dmin.dt[tram][1], dmin2.dt[tram][0]))
             assoc[imgtime] = lclass
@@ -248,8 +248,9 @@ def generate_dataset(ldaysTr, z_factor, method='one', cpatt=None):
     :return:
 
     """
-    ldataTr = []
-    llabelsTr = []
+    ldata = []
+    llabels = []
+    limages = []
 
     for day in ldaysTr:
         if method == 'one':
@@ -259,27 +260,22 @@ def generate_dataset(ldaysTr, z_factor, method='one', cpatt=None):
         for t in dataset:
             for cam, l, _, _ in dataset[t]:
                 if l != 0 and l != 6:
-                    image = mpimg.imread(cameras_path + day + '/' + str(t) + '-' + cam + '.gif')
-                    if np.sum(image == 254) < 100000: # This avoids the "not Available data" image
-                        del image
-                        im = Image.open(cameras_path + day + '/' + str(t) + '-' + cam + '.gif').convert('RGB')
-                        data = np.asarray(im)
-                        data = data[5:235, 5:315, :].astype('float32')
-                        data /= 255.0
-                        if z_factor is not None:
-                            data = np.dstack((zoom(data[:, :, 0], z_factor), zoom(data[:, :, 1], z_factor),
-                                              zoom(data[:, :, 2], z_factor)))
 
-                        ldataTr.append(data)
-                        llabelsTr.append(l)
+                    image = TrImage(cameras_path + day + '/' + str(t) + '-' + cam + '.gif', z_factor=z_factor,
+                                    crop=(5, 5, 5, 5))
+                    if image.correct():
+                        ldata.append(image.getData())
+                        llabels.append(l)
+                        limages.append(day + '/' + str(t) + '-' + cam)
 
 
-    print(Counter(llabelsTr))
 
-    X_train = np.array(ldataTr)
-    y_train = llabelsTr
+    print(Counter(llabels))
 
-    return X_train, y_train
+    X_train = np.array(ldata)
+    y_train = llabels
+
+    return X_train, y_train, limages
 
 
 def generate_data_day(day, z_factor, method='two', mxdelay=60, log=False):
@@ -303,17 +299,10 @@ def generate_data_day(day, z_factor, method='two', mxdelay=60, log=False):
             if l != 0 and l != 6:
                 if log:
                     print(cameras_path + day + '/' + str(t) + '-' + cam + '.gif')
-                image = mpimg.imread(cameras_path + day + '/' + str(t) + '-' + cam + '.gif')
-                if np.sum(image == 254) < 100000:
-                    del image
-                    im = Image.open(cameras_path + day + '/' + str(t) + '-' + cam + '.gif').convert('RGB')
-                    data = np.asarray(im)
-                    data = data[5:235, 5:315, :].astype('float32')
-                    data /= 255.0
-                    if z_factor is not None:
-                        data = np.dstack((zoom(data[:, :, 0], z_factor), zoom(data[:, :, 1], z_factor),
-                                          zoom(data[:, :, 2], z_factor)))
-                    ldata.append(data)
+
+                image = TrImage(cameras_path + day + '/' + str(t) + '-' + cam + '.gif', z_factor=z_factor, crop=(5,5,5,5))
+                if image.correct():
+                    ldata.append(image.getData())
                     llabels.append(l)
                     limages.append(day + '/' + str(t) + '-' + cam)
 
@@ -377,7 +366,7 @@ def generate_image_labels(day, mxdelay=30, onlyfuture=True):
     return assoc
 
 
-def generate_labeled_dataset_day(day, z_factor, mxdelay=60, onlyfuture=True, log=False, imgordering='th'):
+def generate_labeled_dataset_day(path, day, z_factor, mxdelay=60, onlyfuture=True, log=False, imgordering='th'):
     """
     Generates a raw dataset for a day with a zoom factor (data and labels)
     :param z_factor:
@@ -392,17 +381,9 @@ def generate_labeled_dataset_day(day, z_factor, mxdelay=60, onlyfuture=True, log
             if l != 0 and l != 6:
                 if log:
                     print(cameras_path + day + '/' + str(t) + '-' + cam + '.gif')
-                image = mpimg.imread(cameras_path + day + '/' + str(t) + '-' + cam + '.gif')
-                if np.sum(image == 254) < 100000:
-                    del image
-                    im = Image.open(cameras_path + day + '/' + str(t) + '-' + cam + '.gif').convert('RGB')
-                    data = np.asarray(im)
-                    data = data[5:235, 5:315, :].astype('float32')
-                    data /= 255.0
-                    if z_factor is not None:
-                        data = np.dstack((zoom(data[:, :, 0], z_factor), zoom(data[:, :, 1], z_factor),
-                                          zoom(data[:, :, 2], z_factor)))
-                    ldata.append(data)
+                image = TrImage(cameras_path + day + '/' + str(t) + '-' + cam + '.gif', z_factor=z_factor, crop=(5,5,5,5))
+                if image.correct():
+                    ldata.append(image.getData())
                     llabels.append(l)
                     limages.append(day + '/' + str(t) + '-' + cam)
 
@@ -413,9 +394,9 @@ def generate_labeled_dataset_day(day, z_factor, mxdelay=60, onlyfuture=True, log
 
     llabels = [i - 1 for i in llabels]  # change labels from 1-5 to 0-4
     print(Counter(llabels))
-    np.save(process_path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), X_train)
-    np.save(process_path + 'labels-D%s-Z%0.2f.npy' % (day, z_factor), np.array(llabels))
-    output = open(process_path + 'images-D%s-Z%0.2f.pkl' % (day, z_factor), 'wb')
+    np.save(path + 'data-D%s-Z%0.2f.npy' % (day, z_factor), X_train)
+    np.save(path + 'labels-D%s-Z%0.2f.npy' % (day, z_factor), np.array(llabels))
+    output = open(path + 'images-D%s-Z%0.2f.pkl' % (day, z_factor), 'wb')
     pickle.dump(limages, output)
     output.close()
 
@@ -538,7 +519,7 @@ def generate_training_dataset(datapath, ldays, chunk=1024, z_factor=0.25):
 if __name__ == '__main__':
 
     # days = list_days_generator(2016, 11, 1, 30) + list_days_generator(2016, 12, 1, 2)
-    days = list_days_generator(2016, 11, 1, 5)
+    days = list_days_generator(2016, 12, 1, 3)
     z_factor = 0.25
 
     # Old day datafiles generation
@@ -546,14 +527,14 @@ if __name__ == '__main__':
     #     generate_data_day(day, z_factor, method='two', mxdelay=60)
 
 
-    # # Uncomment to view information of day datafiles (examples per class)
-    # info_dataset(dataset_path, days, z_factor)
+    # Uncomment to view information of day datafiles (examples per class)
+    info_dataset(process_path, days, z_factor)
 
 
     # # Uncomment to generate files for a list of days
     # for day in days:
-    #     generate_labeled_dataset_day(day, z_factor, mxdelay=15, onlyfuture=False, imgordering='th')
+    #     generate_labeled_dataset_day(process_path, day, z_factor, mxdelay=15, onlyfuture=False, imgordering='th')
 
-    # Uncoment to generate a HDF5 file for a list of days
-    generate_training_dataset(process_path, days, z_factor=z_factor)
+    # # Uncoment to generate a HDF5 file for a list of days
+    # generate_training_dataset(process_path, days, z_factor=z_factor)
 
