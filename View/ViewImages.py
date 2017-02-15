@@ -17,6 +17,7 @@ ViewImages
 
 """
 
+
 import glob
 
 import matplotlib.image as mpimg
